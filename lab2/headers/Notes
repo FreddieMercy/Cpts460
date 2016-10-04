@@ -1,0 +1,102 @@
+/*add a ‘q’ command,
+which lets the running process call do_exit() to become DEAD. The algorithm of
+do_exit() is*/
+
+do_exit()
+{
+change running PROC’s status to DEAD;
+call tswitch() to give up CPU;
+}
+
+
+/*
+Similarly, add a ‘t’ command, which stops the current running process, and a ‘c’
+command, which lets a stopped process continue. The algorithms of stop and con-
+tinue are
+*/
+
+do_stop()
+{
+change running PROC.status to STOP;
+call tswitch() to give up CPU;
+}
+do_continue()
+{
+ask for a pid to be continued; validate pid, e.g. 0 < pid < NPROC;
+find the PROC by pid; if PROC.status is STOP, change its status to
+READY and enter it into readyQueue;
+}
+
+
+sleep(int event)
+{
+record event value in running PROC.event;
+change running PROC.status to SLEEP;
+switch process;
+}
+wakeup(int event)
+{
+for every proc in the PROC array do{
+if (proc.status == SLEEP && proc.event == event){
+change proc.status to READY; // make it READY to run
+enter proc into readyQueue;
+}
+}
+}
+
+
+For the MTX kernel, we may implement sleep() and wakeup() as follows.
+int sleep(int event)
+{
+running->event = event; // record event in PROC.event
+running->status = SLEEP; // change status to SLEEP
+tswitch();
+// give up CPU
+}
+int wakeup(int event)
+{
+int i; PROC *p;
+for (i=1; i<NPROC; i++){
+// not applicable to P0
+p = &proc[i];
+if (p->status == SLEEP && p->event == event){
+p->event = 0;
+// cancel PROC’s event
+p->status = READY; // make it ready to run again
+enqueue(&readyQueue, p);
+}
+}
+}
+
+
+
+kexit(int exitValue)
+{
+1. erase process user-mode context, e.g. close file descriptors,
+release resources, deallocate user-mode image memory, etc.
+2. dispose of children processes, if any.
+3. record exitValue in PROC.exitCode for parent to get.
+4. become a ZOMBIE (but do not free the PROC)
+5. wakeup parent and, if needed, also the INIT process P1.
+}
+
+
+int kwait(int *status)
+{
+if (caller has no child)
+return -1 for error;
+while(1){ // caller has children
+search for a (any) ZOMBIE child;
+if (found a ZOMBIE child){
+get ZOMBIE child pid
+copy ZOMBIE child exitCode to *status;
+bury the ZOMBIE child (put its PROC back to freeList)
+return ZOMBIE child pid;
+}
+//**** has children but none dead yet ***
+ksleep(running); // sleep on its PROC address
+}
+}
+
+
+

@@ -1,0 +1,27 @@
+VFD=FDimage
+
+as86 -o ts.o ts.s
+
+bcc  -c -ansi main.c
+bcc  -c -ansi c_source_file/int.c
+bcc  -c -ansi c_source_file/kernel.c
+bcc  -c -ansi c_source_file/wait.c
+bcc  -c -ansi c_source_file/queue.c
+bcc  -c -ansi c_source_file/io.c
+ld86 -d -o mtx ts.o main.o c_source_file/int.o c_source_file/kernel.o c_source_file/wait.o c_source_file/queue.o c_source_file/io.o mtxlib /usr/lib/bcc/libc.a
+
+echo mount $VFD on /mnt
+sudo mount -o loop $VFD /mnt
+
+sudo cp mtx /mnt/boot
+sudo umount /mnt
+
+rm *.o mtx
+
+(cd USER; ./mku u1)
+
+echo ready to go?
+read dummy
+
+qemu-system-i386 -fda $VFD -no-fd-bootchk
+
