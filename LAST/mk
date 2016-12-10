@@ -1,0 +1,12 @@
+rm /home/junhao/Desktop/CptS460_labs/LAST/vdisk
+cp /home/junhao/Desktop/vdisk /home/junhao/Desktop/CptS460_labs/LAST/vdisk
+./mku init 1
+./mku sh 1
+./mku login 1
+./mku l2u 1
+./mku cp 1
+./mku cat 1
+./mku cats 1
+./mku grep 1
+./mku more 1
+./q 1
